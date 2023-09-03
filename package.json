@@ -1,0 +1,86 @@
+{
+  "$schema": "https://www.raycast.com/schemas/extension.json",
+  "name": "productive",
+  "title": "Productive",
+  "description": "Manage Productive tasks and timers.",
+  "icon": "productive.png",
+  "author": "adaptably",
+  "owner": "4site",
+  "license": "MIT",
+  "categories": [
+    "Productivity"
+  ],
+  "commands": [
+    {
+      "name": "myTasks.command",
+      "title": "My Tasks",
+      "description": "Browse your recent tasks.",
+      "mode": "view"
+    },
+
+    {
+      "name": "startTimer.command",
+      "title": "Start Timer",
+      "description": "Start a timer on a task. Useful only when launched from within the My Tasks command.",
+      "mode": "view"
+    },
+
+    {
+      "name": "stopCurrentTimer.command",
+      "title": "Stop Current Timer",
+      "description": "Stop the currently running timer. Timer must have been started by the Start Timer command.",
+      "mode": "no-view"
+    }
+  ],
+  "preferences": [
+    {
+      "name": "productiveApiKey",
+      "description": "Your Productive read/write API key.",
+      "type": "password",
+      "required": true,
+      "title": "Productive API Key"
+    },
+
+    {
+      "name": "productiveOrganizationId",
+      "description": "Your Productive Organization ID.",
+      "type": "textfield",
+      "required": true,
+      "title": "Productive Organization ID"
+    },
+
+    {
+      "name": "productivePersonId",
+      "description": "Your Productive Person ID.",
+      "type": "textfield",
+      "required": true,
+      "title": "Productive Person ID"
+    },
+
+    {
+      "name": "timeZone",
+      "description": "Your time zone.",
+      "type": "dropdown",
+      "required": true,
+      "title": "Time Zone",
+
+      "data": [
+        { "title": "US Pacific Time", "value": "America/Los_Angeles" },
+        { "title": "US Central Time", "value": "America/Chicago" },
+        { "title": "US Mountain Time", "value": "America/Denver" },
+        { "title": "US Eastern Time", "value": "America/New_York" }
+      ]
+    }
+  ],
+  "scripts": {
+    "build": "ray build -e dist",
+    "dev": "ray develop",
+    "publish": "npx @raycast/api@latest publish"
+  },
+  "dependencies": {
+    "@raycast/api": "^1.57.2",
+    "@raycast/utils": "^1.10.0",
+    "axios": "^1.5.1",
+    "date-fns": "^2.30.0"
+  }
+}
