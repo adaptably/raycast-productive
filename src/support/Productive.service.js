@@ -111,10 +111,12 @@ async function createTimeEntry({ service, task }) {
 
 async function getTasksWithProjectAndStatus({ query }) {
   const getProjectsQuery = new URLSearchParams({
+    // Show plenty of records.
     'page[size]': 100,
   });
 
   const getWorkflowStatusesQuery = new URLSearchParams({
+    // Show plenty of records.
     'page[size]': 100,
   });
 
@@ -156,6 +158,7 @@ async function getTasksWithProjectAndStatus({ query }) {
 
 export async function getMyTasks() {
   const getMyTasksQuery = new URLSearchParams({
+    // Show plenty of records.
     'page[size]': 100,
 
     // Only get tasks assigned to the current user.
@@ -178,13 +181,14 @@ export async function getMyTasks() {
 
 export async function getMyTasksToday() {
   const getMyTasksTodayQuery = new URLSearchParams({
+    // Show plenty of records.
     'page[size]': 100,
 
     // Only get tasks assigned to the current user.
     'filter[assignee_id]': preferences.productivePersonId,
 
-    // Sort in descending order of most recent activity.
-    'sort': '-last_activity',
+    // Only show open tasks.
+    'filter[status]': 1,
 
     // Tasks due yesterday can't be tasks for today.
     'filter[due_date_after]': subDays(new Date(), '1'),
@@ -192,6 +196,9 @@ export async function getMyTasksToday() {
     // Choose a relatively safe boundary for how long a
     // task might span.
     'filter[due_date_before]': addDays(new Date(), '14'),
+
+    // Sort in descending order of most recent activity.
+    'sort': '-last_activity',
   });
 
   const tasks = await getTasksWithProjectAndStatus({
