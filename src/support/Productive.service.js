@@ -1,6 +1,6 @@
 import axios from 'axios';
 import { environment, getPreferenceValues } from '@raycast/api';
-import { subDays } from 'date-fns';
+import { addDays, subDays } from 'date-fns';
 
 // --------------------------------------------
 
@@ -77,13 +77,18 @@ async function createTimeEntry({ service, task }) {
 
 export async function getMyTasks() {
   const getMyTasksQuery = new URLSearchParams({
+    'page[size]': 100,
+
+    // Only get tasks assigned to the current user.
     'filter[assignee_id]': preferences.productivePersonId,
-    'filter[due_date_after]': subDays(new Date(), '14'),
+
+    // Sort in descending order of most recent activity.
     'sort': '-last_activity',
 
-    // Only show open tasks.
-    'filter[status]': 1,
-  })
+    // Only get tasks with due dates +/- 2 weeks from now.
+    'filter[due_date_after]': subDays(new Date(), '14'),
+    'filter[due_date_before]': addDays(new Date(), '14'),
+  });
 
   const [
     tasksResponse,
