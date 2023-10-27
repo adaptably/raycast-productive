@@ -9,11 +9,14 @@ import {
   Action,
   ActionPanel,
   Cache,
+  Clipboard,
   Color,
   Icon,
+  Keyboard,
   LaunchType,
   List,
-  launchCommand
+  launchCommand,
+  showHUD,
 } from '@raycast/api';
 
 // --------------------------------------------
@@ -23,7 +26,12 @@ const cache = new Cache();
 // --------------------------------------------
 
 function createTaskActions(task) {
-  const taskUrl = `https://app.productive.io/2650-4site-interactive-studios-inc/tasks/task/${ task.id }`;
+  const taskUrl = `https://app.productive.io/2650-4site-interactive-studios-inc/tasks/${ task.id }`;
+
+  async function handleCopyTaskLink() {
+    await Clipboard.copy(taskUrl);
+    await showHUD(`📋 Copied link to ${ task.attributes.title }.`);
+  }
 
   async function handleStartTimer() {
     await launchCommand({
@@ -42,6 +50,13 @@ function createTaskActions(task) {
           title='Start Timer'
           icon={ Icon.Play }
           onAction={ handleStartTimer }
+        />
+
+        <Action
+          title='Copy Task Link'
+          icon={ Icon.Clipboard }
+          shortcut={ Keyboard.Shortcut.Common.Copy }
+          onAction={ handleCopyTaskLink }
         />
       </ActionPanel.Section>
     </ActionPanel>
