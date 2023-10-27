@@ -92,6 +92,11 @@ function createTaskListItemDetail(task) {
         />
 
         <List.Item.Detail.Metadata.Label
+          title='Project'
+          text={ task.customAdditions.projectName }
+        />
+
+        <List.Item.Detail.Metadata.Label
           title='Due Date'
           text={ task.attributes.due_date }
         />
@@ -103,9 +108,15 @@ function createTaskListItemDetail(task) {
 // --------------------------------------------
 
 function createTaskListItem(task) {
+  const taskKeywords = [
+    task.customAdditions.projectName,
+    task.customAdditions.workflowStatusName,
+  ];
+
   return <List.Item
     key={ task.id }
     title={ task.attributes.title }
+    keywords={ taskKeywords }
     detail={ createTaskListItemDetail(task) }
     actions={ createTaskActions(task) }
   />

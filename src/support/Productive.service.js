@@ -35,14 +35,14 @@ if (environment.isDevelopment) {
 // --------------------------------------------
 
 async function createTimeEntry({ service, task }) {
-  const now = new Date();
+  const nowDate = new Date();
 
   const createTimeEntryRequest = await Productive.post('/time_entries', {
     data: {
       type: 'time_entries',
 
       attributes: {
-        date: now.toISOString(),
+        date: nowDate.toISOString(),
       },
 
       relationships: {
@@ -76,6 +76,10 @@ async function createTimeEntry({ service, task }) {
 // --------------------------------------------
 
 export async function getMyTasks() {
+  const getProjectsQuery = new URLSearchParams({
+    'page[size]': 100,
+  });
+
   const getMyTasksQuery = new URLSearchParams({
     'page[size]': 100,
 
@@ -90,18 +94,29 @@ export async function getMyTasks() {
     'filter[due_date_before]': addDays(new Date(), '14'),
   });
 
+  const getWorkflowStatusesQuery = new URLSearchParams({
+    'page[size]': 100,
+  });
+
   const [
+    projectsResponse,
     tasksResponse,
     workflowStatusesResponse,
   ] = await Promise.all([
+    Productive.get(`/projects?${ getProjectsQuery }`),
     Productive.get(`/tasks?${ getMyTasksQuery }`),
-    Productive.get('/workflow_statuses'),
+    Productive.get(`/workflow_statuses?${ getWorkflowStatusesQuery }`),
   ])
 
+  const projects = projectsResponse.data.data;
   const tasks = tasksResponse.data.data;
   const workflowStatuses = workflowStatusesResponse.data.data;
 
   return tasks.map(task => {
+    const taskProject = projects.find(project => {
+      return project.id === task.relationships.project.data.id;
+    });
+
     const taskWorkflowStatus = workflowStatuses.find(workflowStatus => {
       return workflowStatus.id === task.relationships.workflow_status.data.id;
     });
@@ -110,6 +125,7 @@ export async function getMyTasks() {
       ...task,
 
       customAdditions: {
+        projectName: taskProject?.attributes.name || 'Unknown',
         workflowStatusName: taskWorkflowStatus.attributes.name
       }
     }
