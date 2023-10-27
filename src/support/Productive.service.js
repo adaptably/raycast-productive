@@ -1,6 +1,17 @@
 import axios from 'axios';
-import { environment, getPreferenceValues } from '@raycast/api';
-import { addDays, subDays } from 'date-fns';
+
+import {
+  environment,
+  getPreferenceValues,
+} from '@raycast/api';
+
+import {
+  addDays,
+  isAfter,
+  isBefore,
+  isSameDay,
+  subDays,
+} from 'date-fns';
 
 // --------------------------------------------
 
@@ -30,6 +41,29 @@ if (environment.isDevelopment) {
       return Promise.reject(error);
     },
   );
+}
+
+// --------------------------------------------
+
+function taskIsToday(task) {
+  const todayDate = new Date();
+  const todayDateString = todayDate.toISOString().split('T')[0];
+
+  let result = false;
+
+  // Today is the task's due date.
+  if (todayDateString === task.attributes.due_date) {
+    result = true;
+  }
+
+  // Today is between the tasks's start date and due date.
+  if (task.attributes.start_date && task.attributes.due_date) {
+    if (isAfter(todayDate, new Date(task.attributes.start_date)) && isBefore(todayDate, new Date(task.attributes.due_date))) {
+      result = true;
+    }
+  }
+
+  return result;
 }
 
 // --------------------------------------------
@@ -75,23 +109,9 @@ async function createTimeEntry({ service, task }) {
 
 // --------------------------------------------
 
-export async function getMyTasks() {
+async function getTasksWithProjectAndStatus({ query }) {
   const getProjectsQuery = new URLSearchParams({
     'page[size]': 100,
-  });
-
-  const getMyTasksQuery = new URLSearchParams({
-    'page[size]': 100,
-
-    // Only get tasks assigned to the current user.
-    'filter[assignee_id]': preferences.productivePersonId,
-
-    // Sort in descending order of most recent activity.
-    'sort': '-last_activity',
-
-    // Only get tasks with due dates +/- 2 weeks from now.
-    'filter[due_date_after]': subDays(new Date(), '14'),
-    'filter[due_date_before]': addDays(new Date(), '14'),
   });
 
   const getWorkflowStatusesQuery = new URLSearchParams({
@@ -104,7 +124,7 @@ export async function getMyTasks() {
     workflowStatusesResponse,
   ] = await Promise.all([
     Productive.get(`/projects?${ getProjectsQuery }`),
-    Productive.get(`/tasks?${ getMyTasksQuery }`),
+    Productive.get(`/tasks?${ query }`),
     Productive.get(`/workflow_statuses?${ getWorkflowStatusesQuery }`),
   ])
 
@@ -127,9 +147,58 @@ export async function getMyTasks() {
       customAdditions: {
         projectName: taskProject?.attributes.name || 'Unknown',
         workflowStatusName: taskWorkflowStatus.attributes.name
-      }
+      },
     }
   });
+}
+
+// --------------------------------------------
+
+export async function getMyTasks() {
+  const getMyTasksQuery = new URLSearchParams({
+    'page[size]': 100,
+
+    // Only get tasks assigned to the current user.
+    'filter[assignee_id]': preferences.productivePersonId,
+
+    // Sort in descending order of most recent activity.
+    'sort': '-last_activity',
+
+    // Only get tasks with due dates +/- 2 weeks from now.
+    'filter[due_date_after]': subDays(new Date(), '14'),
+    'filter[due_date_before]': addDays(new Date(), '14'),
+  });
+
+  return await getTasksWithProjectAndStatus({
+    query: getMyTasksQuery
+  })
+}
+
+// --------------------------------------------
+
+export async function getMyTasksToday() {
+  const getMyTasksTodayQuery = new URLSearchParams({
+    'page[size]': 100,
+
+    // Only get tasks assigned to the current user.
+    'filter[assignee_id]': preferences.productivePersonId,
+
+    // Sort in descending order of most recent activity.
+    'sort': '-last_activity',
+
+    // Tasks due yesterday can't be tasks for today.
+    'filter[due_date_after]': subDays(new Date(), '1'),
+
+    // Choose a relatively safe boundary for how long a
+    // task might span.
+    'filter[due_date_before]': addDays(new Date(), '14'),
+  });
+
+  const tasks = await getTasksWithProjectAndStatus({
+    query: getMyTasksTodayQuery,
+  })
+
+  return tasks.filter(taskIsToday);
 }
 
 // --------------------------------------------

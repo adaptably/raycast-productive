@@ -20,29 +20,29 @@ const cache = new Cache();
 
 // --------------------------------------------
 
-export default function myTasksCommand() {
-  const cachedMyTasks = cache.get('productiveMyTasks');
+export default function myTasksTodayCommand() {
+  const cachedMyTasksToday = cache.get('productiveMyTasksToday');
 
   const [ state, setState ] = useState({
     loading: true,
 
-    myTasks: cachedMyTasks
-      ? JSON.parse(cachedMyTasks)
+    myTasksToday: cachedMyTasksToday
+      ? JSON.parse(cachedMyTasksToday)
       : []
   });
 
   useEffect(() => {
-    Productive.getMyTasks().then(myTasks => {
-      cache.set('productiveMyTasks', JSON.stringify(myTasks));
+    Productive.getMyTasksToday().then(myTasksToday => {
+      cache.set('productiveMyTasksToday', JSON.stringify(myTasksToday));
 
       setState({
         loading: false,
-        myTasks,
+        myTasksToday,
       });
     });
   }, []);
 
   return <List isLoading={ state.loading } isShowingDetail>
-    { state.myTasks.map(createTaskListItem) }
+    { state.myTasksToday.map(createTaskListItem) }
   </List>
 }
